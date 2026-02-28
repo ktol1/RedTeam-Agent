@@ -36,6 +36,7 @@ PYTHON_PACKAGES = [
     "impacket",       # wmiexec / psexec / secretsdump / GetNPUsers / GetUserSPNs / getST / ntlmrelayx
     "bloodhound",     # bloodhound-python：AD 权限图谱收集
     "netexec",        # nxc：内网横向渗透控制台
+    "playwright",     # Playwright 无头浏览器：动态页面信息读取
 ]
 
 
@@ -208,6 +209,19 @@ def install_python_packages():
         if result.returncode == 0 or "usage" in (result.stdout + result.stderr).lower():
             print(f"[+] {cmd} 入口点可用")
         else:
+            print(f"[~] {cmd} 不在 PATH，请确认 {pkg_name} 正确安装且 pip bin 目录在 PATH 中")
+
+    # 安装 Playwright 浏览器引擎
+    print("\n[*] 安装 Playwright Chromium 浏览器引擎...")
+    result = subprocess.run(
+        [sys.executable, "-m", "playwright", "install", "chromium"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        print("[+] Playwright Chromium 浏览器引擎安装成功")
+    else:
+        print(f"[!] Playwright 浏览器安装失败:\n{result.stderr.strip()}")
+        print("[~] Linux 可能需要先安装系统依赖: playwright install-deps chromium")
             print(f"[~] {cmd} 不在 PATH，请确认 {pkg_name} 正确安装且 pip bin 目录在 PATH 中")
 
 

@@ -292,6 +292,136 @@ async def invoke_delegation_ticket(spn: str, auth_uri: str, impersonate: str = "
     return await run_command_with_timeout(command, timeout=120)
 
 @mcp.tool()
+async def invoke_playwright_browse(url: str, action: str = "info", js_code: str = "", wait_time: int = 5, screenshot_path: str = "") -> str:
+    """
+    使用 Playwright 无头浏览器访问目标页面，读取 JavaScript 动态渲染后的完整信息。
+    与 httpx 的区别：httpx 只能获取原始 HTTP 响应，Playwright 会真正执行 JS、渲染 DOM、保留 Cookie 和 LocalStorage。
+    适用场景：SPA 单页应用信息提取、需要 JS 渲染的后台管理页面、提取 Cookie/Token、登录表单发现、动态加载的 API 端点发现。
+    
+    :param url: 目标 URL (如 'http://10.10.26.107:8080' 或 'https://target.com/admin')。
+    :param action: 操作类型 - "info" (综合信息:标题/Cookie/表单/链接/Meta), "content" (页面纯文本), "html" (完整HTML), "screenshot" (截图保存), "js" (执行自定义JavaScript)。
+    :param js_code: 当 action="js" 时要执行的 JavaScript 代码 (如 'document.cookie' 或 'JSON.stringify(localStorage)')。
+    :param wait_time: 页面加载后额外等待秒数，用于等待 JS 异步渲染完成（默认 5 秒）。
+    :param screenshot_path: action="screenshot" 时截图保存路径，留空则自动生成时间戳命名。
+    """
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        return "执行失败: playwright 未安装。请运行 'pip install playwright && playwright install chromium'。"
+
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(
+                ignore_https_errors=True,
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+            page = await context.new_page()
+
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            except Exception as nav_err:
+                await browser.close()
+                return f"页面导航失败: {str(nav_err)}"
+
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+
+            result = ""
+
+            if action == "info":
+                title = await page.title()
+                current_url = page.url
+                cookies = await context.cookies()
+
+                forms = await page.evaluate("""() => {
+                    return Array.from(document.forms).map(f => ({
+                        action: f.action, method: f.method,
+                        inputs: Array.from(f.elements).map(e => ({name: e.name, type: e.type})).filter(e => e.name)
+                    }))
+                }""")
+
+                links = await page.evaluate("""() => {
+                    return Array.from(document.querySelectorAll('a[href]'))
+                        .map(a => ({text: a.textContent.trim().substring(0, 60), href: a.href}))
+                        .filter(l => l.href && !l.href.startsWith('javascript:'))
+                        .slice(0, 50)
+                }""")
+
+                meta = await page.evaluate("""() => {
+                    return Array.from(document.querySelectorAll('meta'))
+                        .map(m => ({name: m.name || m.httpEquiv || m.getAttribute('property'), content: m.content}))
+                        .filter(m => m.name && m.content)
+                }""")
+
+                scripts_src = await page.evaluate("""() => {
+                    return Array.from(document.querySelectorAll('script[src]'))
+                        .map(s => s.src).slice(0, 30)
+                }""")
+
+                output = [f"=== Playwright 页面综合信息: {url} ==="]
+                output.append(f"页面标题: {title}")
+                output.append(f"最终URL: {current_url}")
+
+                output.append(f"\n--- Cookies ({len(cookies)}) ---")
+                for c in cookies:
+                    output.append(f"  {c['name']}={c['value'][:80]} (domain={c['domain']}, httpOnly={c.get('httpOnly', False)}, secure={c.get('secure', False)})")
+
+                output.append(f"\n--- 表单 ({len(forms)}) ---")
+                for f in forms:
+                    output.append(f"  [Form] action={f['action']} method={f['method']}")
+                    for inp in f.get('inputs', []):
+                        output.append(f"    <input name='{inp['name']}' type='{inp['type']}'>")
+
+                output.append(f"\n--- 链接 (前50) ---")
+                for lnk in links:
+                    output.append(f"  [{lnk['text'][:40]}] -> {lnk['href']}")
+
+                output.append(f"\n--- Meta 标签 ({len(meta)}) ---")
+                for m in meta:
+                    output.append(f"  {m['name']}: {m['content'][:100]}")
+
+                output.append(f"\n--- 外部脚本 ({len(scripts_src)}) ---")
+                for src in scripts_src:
+                    output.append(f"  {src}")
+
+                result = "\n".join(output)
+
+            elif action == "content":
+                result = await page.inner_text("body")
+                if len(result) > 50000:
+                    result = result[:50000] + f"\n... [内容截断，总计 {len(result)} 字符]"
+
+            elif action == "html":
+                result = await page.content()
+                if len(result) > 50000:
+                    result = result[:50000] + f"\n... [HTML 截断，总计 {len(result)} 字符]"
+
+            elif action == "screenshot":
+                if not screenshot_path:
+                    import time
+                    screenshot_path = f"screenshot_{int(time.time())}.png"
+                await page.screenshot(path=screenshot_path, full_page=True)
+                result = f"截图已保存至: {screenshot_path}"
+
+            elif action == "js":
+                if not js_code:
+                    result = "错误: action='js' 时必须提供 js_code 参数。\n常用示例:\n  document.cookie\n  JSON.stringify(localStorage)\n  document.querySelectorAll('input[type=hidden]').length"
+                else:
+                    js_result = await page.evaluate(js_code)
+                    result = f"JavaScript 执行结果:\n{js_result}"
+
+            else:
+                result = f"未知 action '{action}'。支持: info / content / html / screenshot / js"
+
+            await browser.close()
+            return result
+
+    except Exception as e:
+        return f"Playwright 执行失败: {str(e)}"
+
+
+@mcp.tool()
 async def invoke_ntlmrelayx(target: str, listen_time: int = 60, args: str = "") -> str:
     """
     非阻塞式收集：启动 ntlmrelayx.py 进行 NTLM Relay 攻击。

@@ -71,6 +71,7 @@ With it, Claude / GPT / any MCP-compatible LLM can:
 ### 🔧 15+ Integrated Tools
 - Go high-performance engines: gogo / fscan / httpx / nuclei / ffuf / dnsx / kerbrute
 - Python AD pentest suite: Impacket / NetExec (nxc) / BloodHound
+- Playwright headless browser for JS-rendered page extraction
 - Built-in native port scanner replacing Nmap
 
 </td>
@@ -225,6 +226,7 @@ Then tell your AI: *"Scan the 192.168.1.0/24 network for live Windows hosts and 
 | 🔀 Lateral Movement | **[NetExec (nxc)](https://github.com/Pennyw0rth/NetExec)** | Multi-protocol pentest framework (SMB/WinRM/LDAP...) |
 | 🗺️ AD Mapping | **[BloodHound.py](https://github.com/dirkjanm/BloodHound.py)** | Active Directory privilege path collection |
 | 📡 Port Scan | **Built-in** | Native async Python port scanner (no Npcap needed) |
+| 🌐 Browser | **[Playwright](https://playwright.dev)** | Headless browser for JS-rendered page info extraction |
 
 ---
 
@@ -252,6 +254,7 @@ Then tell your AI: *"Scan the 192.168.1.0/24 network for live Windows hosts and 
 │   Windows: gogo.exe  fscan.exe  httpx.exe  nuclei.exe   │
 │   Linux:   gogo     fscan     httpx     nuclei          │
 │   + impacket-* / nxc / bloodhound-python (pip)          │
+│   + playwright (headless Chromium browser engine)        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -383,6 +386,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 ### 🔧 15+ 集成工具
 - Go 高性能引擎：gogo / fscan / httpx / nuclei / ffuf / dnsx / kerbrute
 - Python 域渗透套件：Impacket 全套 / NetExec (nxc) / BloodHound
+- Playwright 无头浏览器动态页面信息提取
 - 内置原生端口扫描器替代 Nmap
 
 </td>
@@ -538,6 +542,7 @@ mcp dev server.py
 | 🔀 横向移动 | **[NetExec (nxc)](https://github.com/Pennyw0rth/NetExec)** | 多协议渗透框架（SMB/WinRM/LDAP...）|
 | 🗺️ 域图谱 | **[BloodHound.py](https://github.com/dirkjanm/BloodHound.py)** | Active Directory 权限路径收集 |
 | 📡 端口扫描 | **内置** | 原生异步 Python 端口扫描器（无需 Npcap）|
+| 🌐 浏览器 | **[Playwright](https://playwright.dev)** | 无头浏览器动态页面信息读取（JS 渲染/Cookie/表单）|
 
 ---
 
