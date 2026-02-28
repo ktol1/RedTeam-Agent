@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+.env
+
+# Binary tools (downloaded by install_tools.py)
+redteam-tools/*.exe
+redteam-tools/*.dll
+
+# Scan results / sensitive output
+result.txt
+*.ccache
+*_hashes.txt
+*_result.txt
+fscan_result.txt
+
+# IDE
+.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temp
+*.tmp
+*.bak
+*.log

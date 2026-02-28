@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="50%" style="stop-color:#161b22"/>
+      <stop offset="100%" style="stop-color:#0d1117"/>
+    </linearGradient>
+    <linearGradient id="redGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff4444"/>
+      <stop offset="50%" style="stop-color:#ff6b6b"/>
+      <stop offset="100%" style="stop-color:#ff4444"/>
+    </linearGradient>
+    <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#58a6ff"/>
+      <stop offset="100%" style="stop-color:#79c0ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bg)" rx="16"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.05" stroke="#58a6ff">
+    <line x1="0" y1="0" x2="0" y2="400" stroke-width="0.5"/>
+    <line x1="40" y1="0" x2="40" y2="400" stroke-width="0.5"/>
+    <line x1="80" y1="0" x2="80" y2="400" stroke-width="0.5"/>
+    <line x1="120" y1="0" x2="120" y2="400" stroke-width="0.5"/>
+    <line x1="160" y1="0" x2="160" y2="400" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="200" y2="400" stroke-width="0.5"/>
+    <line x1="240" y1="0" x2="240" y2="400" stroke-width="0.5"/>
+    <line x1="280" y1="0" x2="280" y2="400" stroke-width="0.5"/>
+    <line x1="320" y1="0" x2="320" y2="400" stroke-width="0.5"/>
+    <line x1="360" y1="0" x2="360" y2="400" stroke-width="0.5"/>
+    <line x1="400" y1="0" x2="400" y2="400" stroke-width="0.5"/>
+    <line x1="440" y1="0" x2="440" y2="400" stroke-width="0.5"/>
+    <line x1="480" y1="0" x2="480" y2="400" stroke-width="0.5"/>
+    <line x1="520" y1="0" x2="520" y2="400" stroke-width="0.5"/>
+    <line x1="560" y1="0" x2="560" y2="400" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="400" stroke-width="0.5"/>
+    <line x1="640" y1="0" x2="640" y2="400" stroke-width="0.5"/>
+    <line x1="680" y1="0" x2="680" y2="400" stroke-width="0.5"/>
+    <line x1="720" y1="0" x2="720" y2="400" stroke-width="0.5"/>
+    <line x1="760" y1="0" x2="760" y2="400" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="400" stroke-width="0.5"/>
+    <line x1="840" y1="0" x2="840" y2="400" stroke-width="0.5"/>
+    <line x1="880" y1="0" x2="880" y2="400" stroke-width="0.5"/>
+    <line x1="920" y1="0" x2="920" y2="400" stroke-width="0.5"/>
+    <line x1="960" y1="0" x2="960" y2="400" stroke-width="0.5"/>
+    <line x1="1000" y1="0" x2="1000" y2="400" stroke-width="0.5"/>
+    <line x1="1040" y1="0" x2="1040" y2="400" stroke-width="0.5"/>
+    <line x1="1080" y1="0" x2="1080" y2="400" stroke-width="0.5"/>
+    <line x1="1120" y1="0" x2="1120" y2="400" stroke-width="0.5"/>
+    <line x1="1160" y1="0" x2="1160" y2="400" stroke-width="0.5"/>
+    <line x1="1200" y1="0" x2="1200" y2="400" stroke-width="0.5"/>
+    <line x1="0" y1="40" x2="1200" y2="40" stroke-width="0.5"/>
+    <line x1="0" y1="80" x2="1200" y2="80" stroke-width="0.5"/>
+    <line x1="0" y1="120" x2="1200" y2="120" stroke-width="0.5"/>
+    <line x1="0" y1="160" x2="1200" y2="160" stroke-width="0.5"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke-width="0.5"/>
+    <line x1="0" y1="240" x2="1200" y2="240" stroke-width="0.5"/>
+    <line x1="0" y1="280" x2="1200" y2="280" stroke-width="0.5"/>
+    <line x1="0" y1="320" x2="1200" y2="320" stroke-width="0.5"/>
+    <line x1="0" y1="360" x2="1200" y2="360" stroke-width="0.5"/>
+  </g>
+
+  <!-- Decorative network nodes -->
+  <g opacity="0.15" filter="url(#softGlow)">
+    <circle cx="100" cy="80" r="4" fill="#ff4444"/>
+    <circle cx="180" cy="150" r="3" fill="#58a6ff"/>
+    <circle cx="60" cy="300" r="5" fill="#ff4444"/>
+    <circle cx="220" cy="320" r="3" fill="#58a6ff"/>
+    <circle cx="1050" cy="90" r="4" fill="#ff4444"/>
+    <circle cx="1100" cy="200" r="3" fill="#58a6ff"/>
+    <circle cx="980" cy="310" r="5" fill="#ff4444"/>
+    <circle cx="1140" cy="340" r="3" fill="#58a6ff"/>
+    <line x1="100" y1="80" x2="180" y2="150" stroke="#ff4444" stroke-width="0.8"/>
+    <line x1="180" y1="150" x2="60" y2="300" stroke="#58a6ff" stroke-width="0.8"/>
+    <line x1="60" y1="300" x2="220" y2="320" stroke="#ff4444" stroke-width="0.8"/>
+    <line x1="1050" y1="90" x2="1100" y2="200" stroke="#ff4444" stroke-width="0.8"/>
+    <line x1="1100" y1="200" x2="980" y2="310" stroke="#58a6ff" stroke-width="0.8"/>
+    <line x1="980" y1="310" x2="1140" y2="340" stroke="#ff4444" stroke-width="0.8"/>
+  </g>
+
+  <!-- Terminal window decoration -->
+  <rect x="320" y="50" width="560" height="300" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+  <rect x="320" y="50" width="560" height="36" rx="12" fill="#161b22"/>
+  <rect x="320" y="74" width="560" height="12" fill="#161b22"/>
+  <circle cx="344" cy="68" r="6" fill="#ff5f57"/>
+  <circle cx="364" cy="68" r="6" fill="#febc2e"/>
+  <circle cx="384" cy="68" r="6" fill="#28c840"/>
+  <text x="540" y="73" font-family="monospace" font-size="13" fill="#8b949e" text-anchor="middle">RedTeam-MCP Terminal</text>
+
+  <!-- Terminal content -->
+  <text x="340" y="110" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="14" fill="#8b949e">$</text>
+  <text x="356" y="110" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="14" fill="#79c0ff"> ai</text>
+  <text x="382" y="110" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="14" fill="#c9d1d9"> "scan 10.10.26.0/24 for vulnerabilities"</text>
+
+  <text x="340" y="140" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="13" fill="#ff7b72" filter="url(#glow)">[*] Agent: Executing recon pipeline...</text>
+
+  <text x="340" y="165" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="12" fill="#7ee787">[+] gogo → 12 hosts alive, 47 open ports</text>
+  <text x="340" y="185" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="12" fill="#7ee787">[+] httpx → IIS/10.0, Apache Tomcat/9.0</text>
+  <text x="340" y="205" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="12" fill="#ffa657">[!] nuclei → CVE-2024-23897 [CRITICAL]</text>
+  <text x="340" y="225" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="12" fill="#7ee787">[+] nxc smb → DESKTOP-01 Pwn3d!</text>
+  <text x="340" y="245" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="12" fill="#ff7b72">[★] secretsdump → Administrator:500:aad3b...NTHASH</text>
+
+  <text x="340" y="275" font-family="'Cascadia Code', 'Fira Code', monospace" font-size="13" fill="#ff7b72" filter="url(#glow)">[✓] Domain Compromised. Full report generated.</text>
+
+  <!-- Blinking cursor -->
+  <rect x="340" y="290" width="8" height="16" fill="#ff4444" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Bottom tagline -->
+  <text x="600" y="380" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#8b949e" text-anchor="middle" letter-spacing="3">
+    WHERE AI MEETS OFFENSIVE SECURITY
+  </text>
+</svg>
