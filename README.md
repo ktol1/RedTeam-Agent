@@ -2,43 +2,99 @@
 
 <div align="center">
 
-![RedTeam-MCP Logo](assets/logo.png)
+<img src="assets/logo.png" alt="RedTeam-MCP" width="200"/>
 
-**AI-Powered Autonomous Red Team Framework via Model Context Protocol**
+### AI-Powered Autonomous Red Team Framework
 
-[English](README.md) · [中文](README_zh.md)
+**Let AI Become Your Security Audit Hacker**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-Protocol-green.svg)](https://modelcontextprotocol.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-Protocol-green?style=for-the-badge)](https://modelcontextprotocol.io/)
+[![Stars](https://img.shields.io/github/stars/ktol1/RedTeam-MCP?style=for-the-badge)](https://github.com/ktol1/RedTeam-MCP/stargazers)
+
+[English](./README.md) · [中文](./README_zh.md) · [Documentation](./.github/skills/redteam/SKILL.md) · [Quick Start](#-quick-start)
 
 </div>
 
 ---
 
-## Overview
+## 🎯 Overview
 
-RedTeam-MCP 让 AI 直接化身安全审计黑客！通过 Model Context Protocol (MCP)，AI 能够自主执行内网渗透测试、活动目录攻击、漏洞利用等红队任务。
+RedTeam-MCP is an AI-powered red team penetration testing framework based on **Model Context Protocol (MCP)**. Through MCP, AI Agents can autonomously perform internal network penetration testing, Active Directory attacks, vulnerability exploitation, and other red team tasks.
 
-**15+ 渗透工具开箱即用**：gogo、fscan、httpx、nuclei、impacket、BloodHound、SharpHound、chisel、pywerview 等。
+> **Core Philosophy**: No manual operation required. AI takes over all penetration tools for truly automated security testing.
 
-## Features
+### ✨ Key Features
 
-| Category | Tools |
-|----------|-------|
-| **Network Scanner** | gogo, fscan |
-| **Web Fingerprint** | httpx, nuclei |
-| **Directory Bruteforce** | ffuf, dirsearch |
-| **AD Enumeration** | SharpHound, bloodhound-python, pywerview |
-| **AD Attacks** | GetNPUsers, GetUserSPNs, secretsdump, ntlmrelayx |
-| **Lateral Movement** | nxc, wmiexec, psexec, dcomexec |
-| **Proxy Setup** | chisel, nc, PowerShell |
-| **Credential Harvest** | responder, ldapdomaindump |
-| **Browser Automation** | playwright |
+| Feature | Description |
+|---------|-------------|
+| 🚀 **Plug & Play** | 15+ tools auto-install, one-click Windows deployment |
+| 🤖 **AI-Driven** | AI calls penetration tools directly via MCP |
+| 💰 **Token Optimized** | Smart output compression, saves 80% tokens |
+| 🛡️ **Full AD Coverage** | BloodHound + impacket + Responder full chain |
+| 🌐 **Multi-Client** | Cursor, Claude Desktop, VS Code Cline |
 
-## Quick Start
+---
 
-### 1. Clone & Install
+## 🛠️ Tool Matrix
+
+### Network Scanning
+
+| Tool | Function | Use Case |
+|------|----------|----------|
+| [gogo](./.github/skills/redteam/SKILL.md#tool-1-gogo-fast-asset-probe) | Fast asset discovery | Internal host detection |
+| [fscan](./.github/skills/redteam/SKILL.md#tool-2-fscan-comprehensive-scanner) | Comprehensive scanner | Port/vulnerability/weak password |
+
+### Web Security
+
+| Tool | Function | Use Case |
+|------|----------|----------|
+| [httpx](./.github/skills/redteam/SKILL.md#tool-3-httpx-web-fingerprinting) | Web fingerprinting | Tech stack identification |
+| [nuclei](./.github/skills/redteam/SKILL.md#tool-4-nuclei-vulnerability-poc-scanner) | POC batch scanning | Known vulnerability detection |
+| [ffuf](./.github/skills/redteam/SKILL.md#tool-5-ffuf-directory-fuzzing) | Directory fuzzing | Web directory brute force |
+
+### Active Directory Attacks 🏆
+
+| Tool | Function | Use Case |
+|------|----------|----------|
+| [SharpHound](./.github/skills/redteam/SKILL.md#tool-8-sharphound-ad-permission-graph-windows) | Windows collector | Domain data collection |
+| [bloodhound-python](./.github/skills/redteam/SKILL.md#tool-7-bloodhound) | Cross-platform collector | Linux/macOS data collection |
+| [GetNPUsers](./.github/skills/redteam/SKILL.md#impacket-getnpusersas-rep-roasting) | AS-REP Roast | Enumerate no-preauth users |
+| [GetUserSPNs](./.github/skills/redteam/SKILL.md#impacket-getuserspnskerberoasting) | Kerberoasting | Request SPN ticket cracking |
+| [secretsdump](./.github/skills/redteam/SKILL.md#impacket-secretsdump-lsass-dump) | LSASS Dump | Extract plaintext and hashes |
+| [ntlmrelayx](./.github/skills/redteam/SKILL.md#impacket-ntlmrelayx) | NTLM Relay | Relay attacks |
+| [pywerview](./.github/skills/redteam/SKILL.md#tool-9-powerview-domain-enumeration) | Domain enumeration | Users/computers/groups |
+| [ldapdomaindump](./.github/skills/redteam/SKILL.md#tool-10-ldapdomaindump-ldap-domain-dump) | LDAP dump | Domain info snapshot |
+
+### Lateral Movement
+
+| Tool | Function | Use Case |
+|------|----------|----------|
+| [nxc](./.github/skills/redteam/SKILL.md#tool-6-netexec-nxc-lateral-movement) | NetExec | SMB/WinRM/SSH |
+| [wmiexec](./.github/skills/redteam/SKILL.md#impacket-wmiexec) | WMI execution | Fileless lateral |
+| [psexec](./.github/skills/redteam/SKILL.md#impacket-psexec) | PSEXEC | Service execution |
+
+### Proxy & Credentials
+
+| Tool | Function | Use Case |
+|------|----------|----------|
+| [chisel](./.github/skills/redteam/SKILL.md#proxy-automation-proxy-setup) | HTTP tunnel | Port forwarding |
+| [responder](./.github/skills/redteam/SKILL.md#tool-11-responder-llmnrntbns-spoofing) | LLMNR spoofing | Hash collection |
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Requirements
+
+```
+Python 3.8+
+Windows 10/11 or Linux/macOS
+8GB+ RAM (recommended)
+```
+
+### 2️⃣ Installation
 
 ```bash
 # Clone repository
@@ -48,30 +104,31 @@ cd RedTeam-MCP/redteam-server
 # Create virtual environment
 python -m venv venv
 
-# Activate (Windows)
+# Activate venv
+# Windows PowerShell
 .\venv\Scripts\Activate.ps1
-# Or (Linux/macOS)
+# Linux/macOS
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Download binary tools (gogo, fscan, httpx, nuclei, etc.)
+# Download binary tools (auto-downloads gogo, fscan, httpx, nuclei, etc.)
 python install_tools.py
 ```
 
-### 2. Configure MCP Client
+### 3️⃣ Configure MCP
 
 #### Cursor IDE
 
-Add to `settings.json`:
+Open `Settings` → `Features` → `MCP Servers` → `Add New Server`
 
 ```json
 {
   "mcpServers": {
     "RedTeam-MCP": {
-      "command": "D:\\mcp\\redteam-server\\venv\\Scripts\\python.exe",
-      "args": ["D:\\mcp\\redteam-server\\server.py"]
+      "command": "D:\\RedTeam-MCP\\redteam-server\\venv\\Scripts\\python.exe",
+      "args": ["D:\\RedTeam-MCP\\redteam-server\\server.py"]
     }
   }
 }
@@ -79,126 +136,180 @@ Add to `settings.json`:
 
 #### Claude Desktop
 
-Add to `%APPDATA%\Claude\claude_desktop_config.json`:
+Edit `%APPDATA%\Claude\claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "RedTeam-MCP": {
-      "command": "D:\\mcp\\redteam-server\\venv\\Scripts\\python.exe",
-      "args": ["D:\\mcp\\redteam-server\\server.py"]
+      "command": "D:\\RedTeam-MCP\\redteam-server\\venv\\Scripts\\python.exe",
+      "args": ["D:\\RedTeam-MCP\\redteam-server\\server.py"]
     }
   }
 }
 ```
 
-#### VS Code (Cline/Roo Code)
-
-Add to MCP settings in the extension config.
-
-### 3. Start Using
+### 4️⃣ Start Using
 
 Tell your AI:
 
-> *"扫描 192.168.1.0/24 网段，发现所有 Windows 主机并识别开放服务。"*
+```
+🎯 Scan 192.168.1.0/24, find all Windows hosts and identify open services
 
-> *"使用 SharpHound 收集域信息，然后分析攻击路径找到域管。"*
+🎯 Use SharpHound to collect corp.local domain info, analyze attack paths
 
-> *"在 192.168.1.100 上搭建 chisel 代理，通过它访问 10.10.10.0/24 网段。"*
+🎯 Set up chisel proxy on 192.168.1.100 to access 10.10.10.0/24 network
 
-## MCP Tools
+🎯 Perform Kerberoasting attack on 192.168.1.50
+```
 
-| Tool | Description |
-|------|-------------|
-| `invoke_gogo` | 极速资产与协议指纹探针 |
-| `invoke_fscan` | 内网综合扫描 (主机发现/端口/漏洞) |
-| `invoke_httpx` | Web 指纹识别与可用性探测 |
-| `invoke_nuclei` | 漏洞 POC 批量扫描 |
-| `invoke_ffuf` | Web 目录/参数 fuzzing |
-| `invoke_nxc` | NetExec 内网横向渗透 |
-| `invoke_bloodhound_analysis` | BloodHound AD 权限图谱分析 |
-| `invoke_powerview` | pywerview 域信息枚举 |
-| `invoke_ldapdomaindump` | LDAP 域信息转储 |
-| `invoke_responder` | LLMNR/NBT-NS 欺骗哈希收集 |
-| `invoke_proxy_setup` | 自动化代理搭建 (chisel/nc/powershell) |
-| `invoke_kerbrute` | Kerberos 用户枚举 |
-| `invoke_ntlmrelayx` | NTLM Relay 攻击 |
-| `invoke_playwright` | Playwright 浏览器自动化 |
+---
 
-## Architecture
+## 📊 Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI Agent (Cursor/Claude)                 │
-└─────────────────────────────┬───────────────────────────────┘
-                              │ MCP Protocol
-┌─────────────────────────────▼───────────────────────────────┐
-│                    RedTeam-MCP Server                       │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                    server.py                         │   │
-│  │  - Tool definitions (17+ tools)                     │   │
-│  │  - Output optimization & truncation                  │   │
-│  │  - Token cost control                                │   │
-│  └─────────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                  Python Libraries                    │   │
-│  │  impacket · bloodhound · pywerview · ldapdomaindump │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────┬───────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│    ██████╗ ██████╗ ███████╗███╗   ███╗███████╗ ██████╗ ██╗    │
+│    ██╔══██╗██╔══██╗██╔════╝████╗ ████║██╔════╝██╔═══██╗██║    │
+│    ██████╔╝██████╔╝███████╗██╔████╔██║█████╗  ██║   ██║██║    │
+│    ██╔═══╝ ██╔══██╗╚════██║██║╚██╔╝██║██╔══╝  ██║   ██║╚═╝    │
+│    ██║     ██║  ██║███████║██║ ╚═╝ ██║███████╗╚██████╔╝██╗    │
+│    ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝    │
+│                                                                 │
+│                    Model Context Protocol                        │
+│                                                                 │
+└─────────────────────────────┬───────────────────────────────────┘
                               │
-┌─────────────────────────────▼───────────────────────────────┐
-│                    Binary Tools                              │
-│  gogo.exe · fscan.exe · httpx.exe · nuclei.exe · chisel.exe │
-│  SharpHound.exe · nxc.exe                                   │
-└─────────────────────────────────────────────────────────────┘
+              ┌───────────────┼───────────────┐
+              │               │               │
+              ▼               ▼               ▼
+       ┌──────────┐   ┌──────────┐   ┌──────────┐
+       │  Cursor   │   │  Claude  │   │  Cline   │
+       │    IDE    │   │  Desktop │   │ (VS Code)│
+       └──────────┘   └──────────┘   └──────────┘
+              │               │               │
+              └───────────────┼───────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+    ┌─────────────────────┐       ┌─────────────────────┐
+    │   MCP Server (Python)│       │   MCP Server (Node)│
+    │                     │       │                     │
+    │  ┌───────────────┐  │       │  ┌───────────────┐  │
+    │  │   server.py   │  │       │  │ @playwright/mcp│  │
+    │  │               │  │       │  │               │  │
+    │  │ 17+ Tools     │  │       │  │ Browser       │  │
+    │  │ Output Opt    │  │       │  │ Automation    │  │
+    │  └───────────────┘  │       │  └───────────────┘  │
+    └─────────────────────┘       └─────────────────────┘
+              │
+              ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │                     Tool Layer                              │
+    │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │
+    │  │  gogo  │ │  fscan  │ │  httpx  │ │ nuclei  │ │ Sharp  │  │
+    │  └────────┘ └────────┘ └────────┘ └────────┘ │Hound.exe│  │
+    │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ └────────┘  │
+    │  │ nxc    │ │ chisel  │ │impacket │ │responder│            │
+    │  └────────┘ └────────┘ └────────┘ └────────┘               │
+    └─────────────────────────────────────────────────────────────┘
 ```
 
-## AD Attack Workflow
+---
+
+## 🎯 AD Attack Flow
 
 ```
-┌──────────────┐    ┌────────────────┐    ┌──────────────────┐
-│   Discovery  │───►│   Collection   │───►│    Analysis      │
-│              │    │                │    │                  │
-│ gogo/fscan   │    │ SharpHound     │    │ BloodHound GUI   │
-│ kerbrute     │    │ bloodhound-py  │    │ bloodhound_      │
-│ pywerview    │    │ ldapdomaindump │    │ analysis.py      │
-└──────────────┘    └────────────────┘    └────────┬─────────┘
-                                                    │
-┌──────────────┐    ┌────────────────┐    ┌────────▼─────────┐
-│   Lateral    │◄───│   Movement     │◄───│    Attack Path   │
-│   Movement   │    │                │    │                  │
-│              │    │ nxc smb        │    │ Golden/Silver    │
-│ wmiexec      │    │ secretsdump    │    │ Kerberoast       │
-│ psexec       │    │ ntlmrelayx     │    │ AS-REP Roast     │
-└──────────────┘    └────────────────┘    └──────────────────┘
+     ┌─────────────────────────────────────────────────────────────────┐
+     │                      Attack Flow                                 │
+     └─────────────────────────────────────────────────────────────────┘
+
+  ┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+  │    Recon      │ ───► │   Collection  │ ───► │   Analysis    │
+  └───────────────┘      └───────────────┘      └───────┬───────┘
+         │                                               │
+         ▼                                               ▼
+  ┌───────────────┐                            ┌───────────────┐
+  │ gogo/fscan    │                            │ BloodHound GUI│
+  │ kerbrute      │                            │ attack_paths  │
+  │ pywerview     │                            │ analysis.py  │
+  └───────────────┘                            └───────────────┘
+                                                        │
+  ┌───────────────┐      ┌───────────────┐            │
+  │    Attack     │ ◄─── │    Lateral    │ ◄─────────┘
+  └───────────────┘      └───────────────┘
+         │                       │
+         ▼                       ▼
+  ┌───────────────┐      ┌───────────────┐
+  │ Kerberoast    │      │ nxc smb       │
+  │ AS-REP Roast  │      │ wmiexec       │
+  │ secretsdump   │      │ psexec        │
+  │ ntlmrelayx    │      │ getST         │
+  └───────────────┘      └───────────────┘
 ```
 
-## Token Optimization
+---
 
-RedTeam-MCP includes intelligent output optimization:
+## 📦 MCP Tools
 
-- **ANSI Code Removal**: Strips terminal colors and formatting
-- **Whitespace Compression**: Removes excessive blank lines
-- **Output Truncation**: Max 8,000 characters per result
-- **Smart Filtering**: Removes progress bars and non-critical errors
+| # | Tool | Function | Command |
+|---|------|----------|---------|
+| 1 | `invoke_gogo` | Fast asset probe | `gogo -t 100 -iL hosts.txt` |
+| 2 | `invoke_fscan` | Network scanner | `fscan -hf hosts.txt` |
+| 3 | `invoke_httpx` | Web fingerprinting | `httpx -l urls.txt -title` |
+| 4 | `invoke_nuclei` | POC scanner | `nuclei -l urls.txt -t vulnerabilities/` |
+| 5 | `invoke_ffuf` | Directory fuzzing | `ffuf -w wordlist.txt -u URL/FUZZ` |
+| 6 | `invoke_nxc` | Lateral movement | `nxc smb 192.168.1.0/24 -u user -p pass` |
+| 7 | `invoke_kerbrute` | Kerberos enum | `kerbrute userenum -d domain users.txt` |
+| 8 | `invoke_bloodhound_analysis` | BloodHound analysis | Parse JSON to attack report |
+| 9 | `invoke_powerview` | Domain enum | `pywerview get-domain-user` |
+| 10 | `invoke_ldapdomaindump` | LDAP dump | `ldapdomaindump ldap://dc` |
+| 11 | `invoke_responder` | LLMNR spoofing | `responder -I eth0` |
+| 12 | `invoke_proxy_setup` | Proxy setup | chisel/nc/powershell |
+| 13 | `invoke_playwright` | Browser automation | screenshot/form/scraping |
+| 14 | `invoke_wmiexec` | WMI execution | impacket-wmiexec |
+| 15 | `invoke_psexec` | PSEXEC | impacket-psexec |
+| 16 | `invoke_secretsdump` | LSASS Dump | impacket-secretsdump |
+| 17 | `invoke_ntlmrelayx` | NTLM Relay | impacket-ntlmrelayx |
 
-## Documentation
+---
 
-- [SKILL.md](.github/skills/redteam/SKILL.md) - Complete tool documentation for AI agents
-- [redteam-server/README.md](redteam-server/README.md) - Server deployment guide
+## ⚡ Token Optimization
 
-## License
+| Optimization | Description | Savings |
+|-------------|-------------|---------|
+| ANSI Removal | Strip terminal colors | ~15% |
+| Whitespace | Merge blank lines | ~10% |
+| Truncation | Max 8000 chars | ~50% |
+| Progress Filter | Remove progress bars | ~20% |
+| **Total** | | **~80%** |
 
-MIT License - see [LICENSE](LICENSE) for details.
+---
 
-## Contributing
+## 📚 Documentation
 
-Contributions welcome! Please read the contribution guidelines first.
+| Document | Description |
+|----------|-------------|
+| [SKILL.md](./.github/skills/redteam/SKILL.md) | Complete tool docs for AI agents |
+| [redteam-server/README.md](./redteam-server/README.md) | Server deployment guide |
+
+---
+
+## 🤝 Contributing
+
+Issues and Pull Requests welcome!
+
+[![Stars](https://img.shields.io/github/stars/ktol1/RedTeam-MCP?style=social)](https://github.com/ktol1/RedTeam-MCP)
+[![Forks](https://img.shields.io/github/forks/ktol1/RedTeam-MCP?style=social)](https://github.com/ktol1/RedTeam-MCP)
 
 ---
 
 <div align="center">
 
-**Star this repo if you find it useful!**
+**MIT License** · Copyright © 2024-2026 **ktol1**
+
+**If you find this useful, give it a ⭐ Star!**
 
 </div>
