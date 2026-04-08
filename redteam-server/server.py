@@ -353,6 +353,837 @@ async def invoke_delegation_ticket(spn: str, auth_uri: str, impersonate: str = "
     return await run_command_with_timeout(command, timeout=120)
 
 @mcp.tool()
+async def invoke_smbclient(auth_uri: str, share: str = "C$", cmd: str = "", args: str = "") -> str:
+    """
+    使用 smbclient.py 通过 SMB 协议连接远程共享，并执行交互式命令或单条命令。
+    适用场景：获取到 SMB 账号密码后，想列出共享、上传/下载文件、访问远程文件系统。
+    
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target'。
+    :param share: 目标共享名称 (默认 'C$')。
+    :param cmd: 要执行的单条 SMB 命令 (如 'ls'、'download file.txt'、'upload payload.exe')，留空则进入交互模式。
+    :param args: 附加参数 (如 '-hashes :NTHASH' 或 '-port 445')。
+    """
+    command = ["smbclient.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if share:
+        command.extend(["-share", share])
+    if cmd:
+        command.append(cmd)
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_ntlmrelayx(targets: str, smb2http: bool = False, escalate_user: str = "", dump_domain: bool = False,
+                            aes_key: str = "", args: str = "") -> str:
+    """
+    使用 ntlmrelayx.py 执行 NTLM 中继攻击，将截获的 Net-NTLM 哈希 Relay 到指定目标。
+    适用场景：在内网中结合 Responder 抓取到哈希后，中继到 SMB/LDAP 等协议获取凭据或执行命令。
+    
+    :param targets: 中继目标列表文件或单个目标 (如 'targets.txt' 或 'smb://192.168.1.100')。
+    :param smb2http: 是否将 SMB 流量中继到 HTTP。
+    :param escalate_user: 中继成功后要提权的用户名。
+    :param dump_domain: 是否执行 DCSync 导出域密码哈希。
+    :param aes_key: 用于 Kerberos 认证的 AES key。
+    :param args: 附加参数 (如 '-tf targets.txt' 或 '-t smb://target')。
+    """
+    command = ["ntlmrelayx.py"]
+    if targets:
+        if os.path.exists(targets):
+            command.extend(["-tf", targets])
+        else:
+            command.extend(["-t", targets])
+    if smb2http:
+        command.append("-smb2http")
+    if escalate_user:
+        command.extend(["-e", escalate_user])
+    if dump_domain:
+        command.append("-d")
+    if aes_key:
+        command.extend(["-aesKey", aes_key])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=300)
+
+@mcp.tool()
+async def invoke_ticketer(domain: str, user: str, hash: str = "", nthash: str = "",
+                          sid: str = "", aes_key: str = "", extra_sids: str = "",
+                          lifetime: int = 10, args: str = "") -> str:
+    """
+    使用 ticketer.py 伪造 Kerberos 票据 (Golden Ticket / Silver Ticket)。
+    适用场景：获取到 krbtgt 哈希后伪造任意用户/域管票据，或利用服务账户哈希伪造 Silver Ticket。
+    
+    :param domain: 域名 (如 'corp.local')。
+    :param user: 要伪造的用户名 (如 'Administrator')。
+    :param hash: krbtgt 用户的 LMHASH:NTHASH 哈希。
+    :param nthash: NTHASH (简写，可单独指定)。
+    :param sid: 域的 SID (如 'S-1-5-21-xxxxx')。
+    :param aes_key: AES key (可选，优先于 hash)。
+    :param extra_sids: 额外的 SID 列表 (如 'S-1-5-21-xxx-519' 表示 Enterprise Admins)。
+    :param lifetime: 票据有效期，默认 10 小时。
+    :param args: 附加参数。
+    """
+    command = ["ticketer.py", "-domain", domain, "-domain-sid", sid]
+    if extra_sids:
+        command.extend(["-extra-sid", extra_sids])
+    if hash:
+        command.extend(["-hashes", hash])
+    elif nthash:
+        command.extend(["-hashes", f":{nthash}"])
+    if aes_key:
+        command.extend(["-aesKey", aes_key])
+    command.extend(["-duration", str(lifetime)])
+    command.append(user)
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_psexec_exec(auth_uri: str, cmd: str = "cmd.exe", exe: str = "", args: str = "") -> str:
+    """
+    使用 psexec.py 远程在目标机器上执行程序 (通过 SMB 创服务和启动进程)。
+    适用场景：获取到本地管理员或域管凭据后，想在远程 Windows 主机上执行系统命令或上传恶意程序。
+    注意：此工具会在目标机器上创建服务，可能触发杀软，建议用于已确认无杀软的靶标。
+    
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target_ip'。
+    :param cmd: 要执行的命令 (默认 'cmd.exe')。
+    :param exe: 要执行的程序路径 (可选，如 '\\windows\\system32\\calc.exe')。
+    :param args: 附加参数 (如 '-hashes :NTHASH')。
+    """
+    command = ["psexec.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if exe:
+        command.extend(["-c", exe])
+    command.extend(["-e", cmd] if cmd else [])
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_smbexec(auth_uri: str, cmd: str = "", mode: str = "exe", args: str = "") -> str:
+    """
+    使用 smbexec.py 横向移动执行，通过 SMB 共享执行命令而不创建服务(比 psexec 更隐蔽)。
+    适用场景：需要横向执行命令但不想创建服务以规避检测。
+    
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target_ip'。
+    :param cmd: 要执行的命令。
+    :param mode: 执行模式 - 'exe' (上传执行) 或 'share' (共享执行)。
+    :param args: 附加参数。
+    """
+    command = ["smbexec.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if cmd:
+        command.extend(["-c", cmd])
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_dcomexec(auth_uri: str, target_host: str = "", cmd: str = "whoami", args: str = "") -> str:
+    """
+    使用 dcomexec.py 通过 DCOM (分布式组件对象模型) 执行远程命令。
+    适用场景：绕过常规 SMB 横向的限制，通过 MMC20 Application、ShellWindows 等 DCOM 接口执行命令。
+    
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target_ip'。
+    :param target_host: DCOM 目标主机 (可以是 IP 或主机名)。
+    :param cmd: 要执行的命令。
+    :param args: 附加参数。
+    """
+    command = ["dcomexec.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if target_host:
+        command.extend(["-object", target_host])
+    command.append(cmd)
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_rpcdump(target: str, auth_uri: str = "", auth_type: str = "ncan_np",
+                         pipes: str = "", args: str = "") -> str:
+    """
+    使用 rpcdump.py 枚举远程主机的 RPC 端点和服务。
+    适用场景：探测目标开放了哪些 RPC 接口，识别操作系统版本或寻找可利用的 DCOM 服务。
+    
+    :param target: 目标主机 IP 或主机名。
+    :param auth_uri: 认证信息 (可选，格式 'domain/user:pass@target')。
+    :param auth_type: 认证类型 (ncan_np/smb/msmq)。
+    :param pipes: 过滤的管道名 (可选)。
+    :param args: 附加参数。
+    """
+    command = ["rpcdump.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    else:
+        command.append(target)
+    if pipes:
+        command.extend(["-pipes", pipes])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_nfs_mount(target: str, path: str, auth_uri: str = "", local_mount: str = "", args: str = "") -> str:
+    """
+    使用 nfs_mount.py 挂载远程 NFS 共享。
+    适用场景：探测到开放的 NFS 服务后，挂载共享目录读取敏感文件(如 SSH 密钥、配置文件等)。
+    
+    :param target: NFS 服务器 IP。
+    :param path: 远程 NFS 共享路径 (如 '/share')。
+    :param auth_uri: 认证信息 (NFS 通常无认证，但可指定 domain)。
+    :param local_mount: 本地挂载点目录路径，留空则使用 ./nfs_mount。
+    :param args: 附加参数。
+    """
+    command = ["nfs_mount.py", target]
+    if path:
+        command.extend(["-o", f"mount={path}"])
+    if auth_uri:
+        command.append(auth_uri)
+    if local_mount:
+        command.extend(["-o", f"dest={local_mount}"])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_mssqlclient(auth_uri: str, sql_cmd: str = "", database: str = "master", args: str = "") -> str:
+    """
+    使用 mssqlclient.py 连接 MS SQL Server 执行 SQL 命令。
+    适用场景：获取到 SQL 账号后，想执行 SQL 语句、读取数据、或利用 xp_cmdshell 执行系统命令。
+    
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target_ip'。
+    :param sql_cmd: 要执行的 SQL 命令 (如 'SELECT @@version' 或 'EXEC xp_cmdshell whoami')。
+    :param database: 默认数据库 (默认 'master')。
+    :param args: 附加参数。
+    """
+    command = ["mssqlclient.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if database:
+        command.extend(["-db", database])
+    if sql_cmd:
+        command.append(sql_cmd)
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_mimikatz(dump_type: str = "all", auth_uri: str = "", target: str = "",
+                          lsass_dump: bool = False, sam: bool = False, secrets: bool = False,
+                          args: str = "") -> str:
+    """
+    使用 mimikatz.py 执行凭据提取 (sekurlsa / lsadump 模块)。
+    适用场景：获取到管理员权限后，想从 LSASS 进程、SAM 数据库、域控缓存中提取明文凭据。
+    注意：需要管理员权限执行。
+    
+    :param dump_type: 提取类型 - 'all' (全部) / 'sekurlsa' (sekurlsa::logonPasswords) / 'lsadump' (lsadump::dcsync)。
+    :param auth_uri: 认证信息，格式为 'domain/username:password@target'。
+    :param target: 目标主机 (如果 auth_uri 未包含)。
+    :param lsass_dump: 是否执行 lsass 进程 dump。
+    :param sam: 是否提取 SAM 数据库。
+    :param secrets: 是否提取 LSA Secrets。
+    :param args: 附加参数。
+    """
+    command = ["mimikatz.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    elif target:
+        command.append(target)
+    
+    if dump_type == "sekurlsa" or lsass_dump:
+        command.extend(["-dump", "sekurlsa"])
+    elif dump_type == "lsadump" or secrets or sam:
+        command.extend(["-dump", "lsadump"])
+    else:
+        command.extend(["-dump", "all"])
+    
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_goldenPac(domain: str, user: str, password: str, target: str,
+                           dc_ip: str = "", krbtgt_hash: str = "", args: str = "") -> str:
+    """
+    使用 goldenPac.py 自动执行 Golden Ticket 攻击并维持目标机器的访问权限。
+    适用场景：获取 krbtgt 哈希后，使用 Golden Ticket 持久化访问域内任意机器。
+    
+    :param domain: 域名 (如 'corp.local')。
+    :param user: 认证用户名。
+    :param password: 认证密码。
+    :param target: 目标主机 (单个 IP 或 'hostfile.txt')。
+    :param dc_ip: 域控制器 IP。
+    :param krbtgt_hash: krbtgt 账号的 NTHASH。
+    :param args: 附加参数。
+    """
+    command = ["goldenPac.py", f"{domain}/{user}:{password}@{target}"]
+    if dc_ip:
+        command.extend(["-dc-ip", dc_ip])
+    if krbtgt_hash:
+        command.extend(["-hashes", f":{krbtgt_hash}"])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_kintercept(target: str, auth_uri: str = "", mode: str = "read",
+                            query: str = "", args: str = "") -> str:
+    """
+    使用 kintercept.py (kerberos枚举/票据操作) 执行 Kerberos 相关操作。
+    适用场景：枚举 Kerberos 票据、查看 TGT、请求特定服务票据等。
+    
+    :param target: 目标主机或域。
+    :param auth_uri: 认证信息 (格式 'domain/user:pass@target')。
+    :param mode: 操作模式 - 'read' (读取票据) / 'request' (请求票据) / 'renew' (续期票据)。
+    :param query: 查询条件 (如 SPN 名称)。
+    :param args: 附加参数。
+    """
+    command = ["kintercept.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    else:
+        command.append(target)
+    command.extend(["-mode", mode])
+    if query:
+        command.extend(["-query", query])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_opdump(target: str, auth_uri: str = "", protocol: str = "ldap",
+                        binding: str = "", args: str = "") -> str:
+    """
+    使用 opdump.py 绑定到指定 RPC 协议端点进行操作。
+    适用场景：手动绑定 MS-RPCE 端点进行协议交互探测。
+    
+    :param target: 目标主机 IP。
+    :param auth_uri: 认证信息 (可选)。
+    :param protocol: 协议类型 (ldap/smb/ncacn_np/http)。
+    :param binding: 绑定字符串。
+    :param args: 附加参数。
+    """
+    command = ["opdump.py", target]
+    if protocol:
+        command.extend(["-protocol", protocol])
+    if binding:
+        command.extend(["-binding", binding])
+    if auth_uri:
+        command.append(auth_uri)
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_registry_read(auth_uri: str, hive: str = "HKLM", path: str = "",
+                               key: str = "", args: str = "") -> str:
+    """
+    使用 registry_read.py 读取远程注册表。
+    适用场景：查询目标机器的注册表获取系统配置、已安装软件、启动项等敏感信息。
+    
+    :param auth_uri: 认证信息，格式为 'domain/user:pass@target'。
+    :param hive: 注册表配置单元 - 'HKLM' 或 'HKU'。
+    :param path: 注册表路径 (如 'SYSTEM\\CurrentControlSet\\Services\\')。
+    :param key: 要读取的特定键名。
+    :param args: 附加参数。
+    """
+    command = ["registry_read.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    command.extend(["-HiveName", hive])
+    if path:
+        command.extend(["-SubKey", path])
+    if key:
+        command.append(key)
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_services(auth_uri: str, action: str = "query", service_name: str = "",
+                          display_name: str = "", args: str = "") -> str:
+    """
+    使用 services.py 枚举、启动、停止、创建或删除 Windows 服务。
+    适用场景：在横向移动后管理目标机器上的 Windows 服务，实现持久化或提权。
+    
+    :param auth_uri: 认证信息，格式为 'domain/user:pass@target'。
+    :param action: 操作类型 - 'query' (查询) / 'start' (启动) / 'stop' (停止) / 'create' (创建) / 'delete' (删除)。
+    :param service_name: 服务名 (如 'VulnService')。
+    :param display_name: 服务的显示名称。
+    :param args: 附加参数。
+    """
+    command = ["services.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    command.extend(["-action", action])
+    if service_name:
+        command.extend(["-service-name", service_name])
+    if display_name:
+        command.extend(["-display-name", display_name])
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_netview(targets: str = "", auth_uri: str = "", get_sessions: bool = False,
+                         get_loggedin_users: bool = False, args: str = "") -> str:
+    """
+    使用 netview.py 枚举域内主机、共享、会话和登录用户。
+    适用场景：域内信息收集，发现潜在横向目标。
+    
+    :param targets: 目标主机列表文件或单个主机。
+    :param auth_uri: 认证信息。
+    :param get_sessions: 是否获取会话信息。
+    :param get_loggedin_users: 是否获取登录用户信息。
+    :param args: 附加参数。
+    """
+    command = ["netview.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    if targets:
+        if os.path.exists(targets):
+            command.extend(["-targetfile", targets])
+        else:
+            command.extend(["-target", targets])
+    if get_sessions:
+        command.append("-show-sessions")
+    if get_loggedin_users:
+        command.append("-show-loggedin")
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=180)
+
+@mcp.tool()
+async def invoke_lookupsid(target: str, domain: str = "", auth_uri: str = "",
+                           range_start: str = "500", range_end: str = "550", args: str = "") -> str:
+    """
+    使用 lookupsid.py 通过 LSARPC 接口枚举域用户和组的 SID 历史。
+    适用场景：获取域内用户名列表，通过 RID 暴力猜测发现隐藏账户。
+    
+    :param target: 目标主机 IP。
+    :param domain: 域名。
+    :param auth_uri: 认证信息 (格式 'domain/user:pass@target')。
+    :param range_start: SID 范围起始值 (默认 500)。
+    :param range_end: SID 范围结束值 (默认 550)。
+    :param args: 附加参数。
+    """
+    command = ["lookupsid.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    else:
+        command.append(target)
+    if domain:
+        command.extend(["-domain", domain])
+    command.extend(["-range", f"{range_start}-{range_end}"])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_ldapsearch(domain: str, dc_ip: str, auth_uri: str = "",
+                             filter: str = "(objectClass=user)", attributes: str = "",
+                             args: str = "") -> str:
+    """
+    使用 ldapsearch.py (基于 Impacket) 查询 LDAP 目录获取域信息。
+    适用场景：枚举域用户、计算机、组、OU、GPO 等 AD 对象。
+    
+    :param domain: 域名 (如 'corp.local')。
+    :param dc_ip: 域控制器 IP。
+    :param auth_uri: 认证信息 (格式 'domain/user:pass' 或 'domain/user@dc_ip')。
+    :param filter: LDAP 搜索过滤器 (默认 '(objectClass=user)')。
+    :param attributes: 要查询的属性列表 (如 'sAMAccountName,mail,memberOf')。
+    :param args: 附加参数。
+    """
+    command = ["ldapsearch.py"]
+    command.append(f"-dc-hosts={dc_ip}")
+    if auth_uri:
+        command.append(auth_uri)
+    else:
+        command.append(domain)
+    command.extend(["-query", f'"{filter}"'])
+    if attributes:
+        command.extend(["-attributes", attributes])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_smbpasswd(auth_uri: str, new_password: str = "", args: str = "") -> str:
+    """
+    使用 smbpasswd.py 修改 SMB 用户的密码。
+    适用场景：获取某个账号后，想修改密码维持权限或进行持久化。
+    
+    :param auth_uri: 当前认证信息，格式为 'domain/username:password@target'。
+    :param new_password: 新密码。
+    :param args: 附加参数 (如 '-newhashes :NEWNTHASH')。
+    """
+    command = ["smbpasswd.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if new_password:
+        command.append(new_password)
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_potentialapis(auth_uri: str = "", target: str = "", mode: str = "enum",
+                               args: str = "") -> str:
+    """
+    使用 potentialapis.py 枚举或注入潜在的 API_HOOK 检测。
+    适用场景：检测杀软/EDR 的 API Hooking 状态，辅助免杀或后门部署。
+    
+    :param auth_uri: 认证信息 (格式 'domain/user:pass@target')。
+    :param target: 目标主机 (如果 auth_uri 未包含)。
+    :param mode: 操作模式 - 'enum' (枚举) / 'inject' (注入检测)。
+    :param args: 附加参数。
+    """
+    command = ["potentialapis.py"]
+    if auth_uri:
+        command.append(auth_uri)
+    elif target:
+        command.append(target)
+    command.extend(["-mode", mode])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_wmipersist(auth_uri: str, trigger: str = "logon", action: str = "",
+                             exe_path: str = "", args: str = "") -> str:
+    """
+    使用 wmipersist.py 利用 WMI 订阅者/事件进行持久化。
+    适用场景：在目标机器上建立 WMI 事件订阅实现权限维持。
+    
+    :param auth_uri: 认证信息，格式为 'domain/user:pass@target'。
+    :param trigger: 触发条件 - 'logon' / 'boot' / 'periodic'。
+    :param action: 要执行的动作 (如 'notepad.exe' 或 'powershell -enc ...')。
+    :param exe_path: 恶意程序路径。
+    :param args: 附加参数。
+    """
+    command = ["wmipersist.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    command.extend(["-trigger", trigger])
+    if action:
+        command.extend(["-action", action])
+    if exe_path:
+        command.extend(["-exe", exe_path])
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_rubeus(domain: str, user: str = "", password: str = "",
+                        hash: str = "", action: str = "ask", target_spnb: str = "",
+                        ticket: str = "", args: str = "") -> str:
+    """
+    使用 Rubeus.exe 进行 Kerberos 相关攻击 (AS-REP Roasting / Kerberoasting / TGT 伪造等)。
+    适用场景：在 Windows 机器上执行 Kerberos 攻击，支持多种攻击模式。
+    注意：需要先上传 Rubeus.exe 到目标机器。
+    
+    :param domain: 域名。
+    :param user: 用户名。
+    :param password: 密码。
+    :param hash: 密码哈希 (格式 ':NTHASH')。
+    :param action: 攻击类型 - 'ask' (AS-REQ) / 'kerberoast' / 'tgt' / 'ptt' (Pass-the-Ticket) / 'purge'。
+    :param target_spnb: Kerberoasting 的目标 SPN。
+    :param ticket: Base64 编码的票据 (用于 PTT)。
+    :param args: 附加参数。
+    """
+    command = ["Rubeus.exe"]
+    command.extend(["/domain", domain])
+    if user:
+        command.extend(["/user", user])
+    if password:
+        command.extend(["/password", password])
+    if hash:
+        command.extend(["/hashes", hash.replace(":", "")])  # Rubeus 格式
+    command.extend(["/action", action])
+    if target_spnb:
+        command.extend(["/spn", target_spnb])
+    if ticket:
+        command.extend(["/ticket", ticket])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_egghunter(auth_uri: str = "", payload: str = "", payload_type: str = "calc",
+                            encoders: str = "", args: str = "") -> str:
+    """
+    使用 egghunter.py 生成 egghunter shellcode 用于在内存中搜索标记的 shellcode 并执行。
+    适用场景：当 shellcode 较大无法直接填充时，利用 egghunter 定位并执行 shellcode。
+    
+    :param auth_uri: 认证信息 (格式 'domain/user:pass@target')。
+    :param payload: 要搜索的 shellcode 标签 (默认 'egg')。
+    :param payload_type: payload 类型 (用于生成测试 shellcode)。
+    :param encoders: 编码器。
+    :param args: 附加参数。
+    """
+    command = ["egghunter.py"]
+    if args:
+        command.extend(shlex.split(args))
+    if payload:
+        command.extend(["-egg", payload])
+    if payload_type:
+        command.extend(["-payload", payload_type])
+    if encoders:
+        command.extend(["-encoders", encoders])
+    return await run_command_with_timeout(command, timeout=30)
+
+@mcp.tool()
+async def invoke_smbrelayx(targets: str = "", mode: str = "server", inject: str = "",
+                            exe_path: str = "", args: str = "") -> str:
+    """
+    使用 smbrelayx.py 执行 SMB 中继攻击 (监听 SMB 连接并中继到其他目标)。
+    适用场景：结合 Responder 或独立使用，将 SMB 哈希中继到其他机器获取权限。
+    
+    :param targets: 目标列表文件。
+    :param mode: 模式 - 'server' (监听) / 'relay' (中继)。
+    :param inject: 要执行的命令或代码。
+    :param exe_path: 要上传执行的程序路径。
+    :param args: 附加参数。
+    """
+    command = ["smbrelayx.py"]
+    if targets:
+        if os.path.exists(targets):
+            command.extend(["-tf", targets])
+        else:
+            command.extend(["-t", targets])
+    command.extend(["-mode", mode])
+    if inject:
+        command.extend(["-e", inject])
+    if exe_path:
+        command.extend(["-c", exe_path])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=300)
+
+@mcp.tool()
+async def invoke_mqtt_troll(mqtt_server: str = "", topic: str = "", payload: str = "",
+                            auth_uri: str = "", args: str = "") -> str:
+    """
+    使用 mqtt_troll.py 发送伪造的 MQTT 消息或订阅 MQTT 主题进行数据嗅探。
+    适用场景：IoT/工控环境中测试 MQTT 协议安全。
+    
+    :param mqtt_server: MQTT broker 地址。
+    :param topic: MQTT 主题。
+    :param payload: 要发送的消息内容。
+    :param auth_uri: 认证信息 (用户名:密码)。
+    :param args: 附加参数。
+    """
+    command = ["mqtt_troll.py"]
+    if mqtt_server:
+        command.extend(["-server", mqtt_server])
+    if topic:
+        command.extend(["-topic", topic])
+    if payload:
+        command.extend(["-data", payload])
+    if auth_uri:
+        command.extend(["-auth", auth_uri])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_journal_export(auth_uri: str, export_path: str = "", args: str = "") -> str:
+    """
+    使用 windows.journal.py 读取 Windows 事件日志 (.evtx 文件)。
+    适用场景：从目标机器或 dump 的内存中解析事件日志，寻找攻击痕迹或凭据线索。
+    
+    :param auth_uri: 认证信息 (格式 'domain/user:pass@target')。
+    :param export_path: 导出文件路径。
+    :param args: 附加参数。
+    """
+    command = ["windows.journal.py"]
+    if args:
+        command.extend(shlex.split(args))
+    command.append(auth_uri)
+    if export_path:
+        command.extend(["-o", export_path])
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_split(img1: str, img2: str, args: str = "") -> str:
+    """
+    使用 split.pcap.py 将 pcap 文件按流分割。
+    适用场景：分析大 pcap 文件时将其分割为多个小文件。
+    
+    :param img1: 输入的 pcap/pcapng 文件路径。
+    :param img2: 输出目录或前缀。
+    :param args: 附加参数。
+    """
+    command = ["split.pcap.py", img1]
+    if img2:
+        command.append(img2)
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_pcap_analytics(pcap_file: str, extract_creds: bool = True,
+                                extract_files: bool = False, args: str = "") -> str:
+    """
+    使用 pacpanalytics.py 分析 pcap 文件，提取认证信息和文件。
+    适用场景：从网络流量中提取明文凭据、HTTP 上传文件等。
+    
+    :param pcap_file: pcap 文件路径。
+    :param extract_creds: 是否提取认证信息。
+    :param extract_files: 是否提取传输文件。
+    :param args: 附加参数。
+    """
+    command = ["pcapanalytics.py", pcap_file]
+    if extract_creds:
+        command.append("-creds")
+    if extract_files:
+        command.append("-extract-files")
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_pdump(thrift_file: str = "", protocol: str = "", mode: str = "dump",
+                       args: str = "") -> str:
+    """
+    使用 pandump.py 解析 Pandora SDK 协议的流量文件 (thrift)。
+    适用场景：分析特定工控/IoT 协议的流量。
+    
+    :param thrift_file: Thrift 协议定义文件。
+    :param protocol: 协议名称。
+    :param mode: 模式 - 'dump' (解析) / 'fuzz' (模糊测试)。
+    :param args: 附加参数。
+    """
+    command = ["pandump.py"]
+    if thrift_file:
+        command.extend(["-f", thrift_file])
+    if protocol:
+        command.extend(["-protocol", protocol])
+    command.append(f"-mode={mode}")
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_sniff(interface: str = "eth0", filter: str = "", count: int = 0,
+                       output_file: str = "", args: str = "") -> str:
+    """
+    使用 sniffer.py 进行网络流量嗅探。
+    适用场景：抓取网络流量发现明文凭据或敏感通信。
+    
+    :param interface: 监听的网络接口。
+    :param filter: BPF 过滤表达式。
+    :param count: 抓包数量 (0 为无限)。
+    :param output_file: 输出 pcap 文件路径。
+    :param args: 附加参数。
+    """
+    command = ["sniffer.py"]
+    command.extend(["-i", interface])
+    if filter:
+        command.extend(["-filter", filter])
+    if count > 0:
+        command.extend(["-c", str(count)])
+    if output_file:
+        command.extend(["-o", output_file])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_ping(target: str, count: int = 4, timeout: int = 5, args: str = "") -> str:
+    """
+    使用 ping.py 发送 ICMP ping 检测主机存活。
+    适用场景：检测目标是否在线。
+    
+    :param target: 目标 IP 或主机名。
+    :param count: ping 次数。
+    :param timeout: 超时秒数。
+    :param args: 附加参数。
+    """
+    command = ["ping.py", target, "-c", str(count), "-w", str(timeout)]
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=60)
+
+@mcp.tool()
+async def invoke_tcpdump(interface: str = "eth0", filter: str = "", count: int = 100,
+                         output_file: str = "", args: str = "") -> str:
+    """
+    使用 tcpsniff.py 监听 TCP 流量并提取数据。
+    适用场景：中间人嗅探或分析特定 TCP 连接。
+    
+    :param interface: 监听的网络接口。
+    :param filter: BPF 过滤表达式。
+    :param count: 最大数据包数量。
+    :param output_file: 输出文件路径。
+    :param args: 附加参数。
+    """
+    command = ["tcpsniff.py"]
+    command.extend(["-i", interface])
+    if filter:
+        command.extend(["-filter", filter])
+    if count > 0:
+        command.extend(["-c", str(count)])
+    if output_file:
+        command.extend(["-o", output_file])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_ngioauthblaster(target: str, port: int = 445, auth_type: str = "ntlm",
+                                 users: str = "", passwords: str = "", args: str = "") -> str:
+    """
+    使用 ntlmrelayx-ngioauthblaster.py 暴力破解 NTLM 认证。
+    适用场景：对 SMB/HTTP NTLM 认证进行暴力破解测试。
+    
+    :param target: 目标主机。
+    :param port: 端口 (默认 445)。
+    :param auth_type: 认证类型 (ntlm/kerberos)。
+    :param users: 用户名列表文件。
+    :param passwords: 密码列表文件。
+    :param args: 附加参数。
+    """
+    command = ["ngioauthblaster.py", target, "-port", str(port), "-authType", auth_type]
+    if users:
+        command.extend(["-users", users])
+    if passwords:
+        command.extend(["-passwords", passwords])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=600)
+
+@mcp.tool()
+async def invoke_esentutlparse(db_file: str, output_dir: str = "", args: str = "") -> str:
+    """
+    使用 esentutl.py 解析 ESE (Extensible Storage Engine) 数据库文件。
+    适用场景：从 Windows 索引服务、Exchange邮箱、DHCP 数据库等 ESE 文件提取数据。
+    
+    :param db_file: ESE 数据库文件路径 (.edb/.mdb)。
+    :param output_dir: 输出目录。
+    :param args: 附加参数。
+    """
+    command = ["esentutl.py", db_file]
+    if output_dir:
+        command.extend(["-o", output_dir])
+    if args:
+        command.extend(shlex.split(args))
+    return await run_command_with_timeout(command, timeout=120)
+
+@mcp.tool()
+async def invoke_misc(mcp, command_name: str, args_str: str = "") -> str:
+    """
+    执行其他未单独封装的 impacket 工具脚本。
+    适用场景：执行服务器上已安装但 MCP 未封装的 impacket 工具。
+    
+    :param command_name: impacket 命令名 (如 'karmaSMB'、'getArch'、'ntfs-read' 等)。
+    :param args_str: 命令参数 (完整参数字符串)。
+    """
+    import shutil
+    tool_path = shutil.which(command_name)
+    if not tool_path:
+        return f"执行失败: 找不到 impacket 工具 '{command_name}'，请确认已安装 impacket。"
+    cmd_list = [command_name]
+    if args_str:
+        cmd_list.extend(shlex.split(args_str))
+    return await run_command_with_timeout(cmd_list, timeout=120)
+
+@mcp.tool()
 async def invoke_playwright_browse(url: str, action: str = "info", js_code: str = "", wait_time: int = 5, screenshot_path: str = "") -> str:
     """
     使用 Playwright 无头浏览器访问目标页面，读取 JavaScript 动态渲染后的完整信息。

