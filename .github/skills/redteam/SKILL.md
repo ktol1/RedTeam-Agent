@@ -22,7 +22,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 | 类型 | 目录位置 | 说明 |
 |------|----------|------|
-| 核心工具二进制/脚本 | `./tools/` | gogo/fscan/httpx/nuclei/ffuf/nxc/Responder 等 |
+| 核心工具二进制/脚本 | `./tools/` | gogo/fscan/httpx/nuclei/ffuf/nxc/Inveigh 等 |
 | Impacket 脚本集合 | `./tools/impacket/` | getST.py、smbclient.py、wmiexec.py、psexec.py 等 |
 | 安装与分析脚本 | `./scripts/` | install_tools.py、proxy_setup.py、bloodhound_analysis.py |
 | 字典与爆破词库 | `./wordlists/` | 用户名、密码、子域、目录爆破字典 |
@@ -536,40 +536,48 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ---
 
-## 工具十一：Responder (LLMNR/NBT-NS 欺骗)
+## 工具十一：Inveigh (Windows 原生 LLMNR/NBT-NS/mDNS/DNS)
 
-**Python 包**: `pip install responder`
+**二进制路径**: `./tools/inveigh/Inveigh.exe`
 
-> 在内网中监听 LLMNR/NBT-NS/mDNS 广播，欺骗认证，捕获 NetNTLMv1/v2 哈希。
-> 可用于哈希重放攻击或离线破解。
+> Inveigh 是 Windows 原生 MITM/凭据捕获工具，可替代 Responder 在 Windows 环境下的主要能力。
 
-**重要提示**：
-
-> ⚠️ Responder 是监听型工具，必须配合 `impacket-responder` 终端工具使用（后台运行 + 超时）。
-
-**参数**：
+**核心参数**：
 
 | 参数 | 说明 |
 |------|------|
-| `-I <interface>` | 监听网卡（IP 或名称） |
-| `-w` | 开启 WPAD 代理服务器 |
-| `-F` | 强制 NTLM 认证 |
-| `--lm` | 强制 LM 哈希（更易破解） |
-| `-v` | 详细输出 |
+| `-sniffer y/n` | 是否启用抓包模式（需管理员） |
+| `-inspect y` | 被动观察模式（不投毒） |
+| `-smb y/n` | SMB 监听/抓包（445 常冲突） |
+| `-llmnr y` | 启用 LLMNR |
+| `-nbns y` | 启用 NBNS |
+| `-mdns y` | 启用 mDNS |
+| `-dns y` | 启用 DNS 响应 |
+| `-fileoutput y` | 文件落盘 |
+| `-filedirectory <path>` | 输出目录 |
+| `-runtime <min>` | 运行时长（分钟） |
 
-**实战指令**：
+**本仓库快速启动**：
 
-  # 启动 Responder（使用 终端工具自动后台运行）
-  impacket-responder is NOT supported, manually run responder with nohup or Start-Job.
+```powershell
+# 监听模式（推荐默认）
+powershell -ExecutionPolicy Bypass -File .\scripts\start_inveigh.ps1
 
-  # 查看捕获的哈希
-  # Hashes 保存在: /usr/share/responder/logs/
+# 被动观察模式（30分钟自动结束）
+powershell -ExecutionPolicy Bypass -File .\scripts\start_inveigh_inspect.ps1
+```
 
-**稳定复现建议（含 downdetector.ps1 场景）**：
+**直接启动示例**：
 
-- 若目标链路是触发认证并抓取 NetNTLM，优先使用 **Responder 监听**，比 relay 链更直接。
-- 监听类任务务必后台运行，并周期性读取输出，避免阻塞会话。
-- 先确认网卡与广播域，再启用 `-I` 指定接口，减少空跑。
+```powershell
+.\tools\inveigh\Inveigh.exe -sniffer n -smb n -llmnr y -nbns y -mdns y -dns y -fileoutput y -filedirectory .\results\inveigh -console 5
+```
+
+**稳定复现建议**：
+
+- Windows 默认 445 端口常被系统占用，优先使用 `-smb n`。
+- 先用 `-inspect y` 验证广播域流量，再切到投毒模式。
+- 长时间监听建议配合 `-runtime` 与文件输出，避免会话阻塞。
 
 ---
 
